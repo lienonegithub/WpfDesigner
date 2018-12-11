@@ -200,25 +200,26 @@ namespace ICSharpCode.XamlDesigner
 		{
 			var path = MainWindow.Instance.AskOpenFileName();
 			if (path != null)
-			{
 				Open(path);
-			}
 			var cfgName = CurrentDocument.FileName ?? CurrentDocument.Name;
-			string settingStr = XmlDeserialize.ScreenSettings(path);
-
-			#region SaveConfig
-			string filePath = Path.GetDirectoryName(path) + "\\";
-			filePath += Path.GetFileNameWithoutExtension(path) + ".c";
-			StringBuilder sb = new StringBuilder();
-			sb.Append(settingStr);
-			FileStream _file = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
-			using (StreamWriter sw = new StreamWriter(_file))
+			if (!string.IsNullOrEmpty(path))
 			{
-				sw.Write(sb.ToString());
-				sw.Close();
-				sw.Dispose();
+				string settingStr = XmlDeserialize.ScreenSettings(path);
+
+				#region SaveConfig
+				string filePath = Path.GetDirectoryName(path) + "\\";
+				filePath += Path.GetFileNameWithoutExtension(path) + ".c";
+				StringBuilder sb = new StringBuilder();
+				sb.Append(settingStr);
+				FileStream _file = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
+				using (StreamWriter sw = new StreamWriter(_file))
+				{
+					sw.Write(sb.ToString());
+					sw.Close();
+					sw.Dispose();
+				}
+				#endregion
 			}
-			#endregion
 		}
 		public bool SaveAll()
 		{
