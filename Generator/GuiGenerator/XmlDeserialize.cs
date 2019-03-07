@@ -112,7 +112,7 @@ namespace GuiGenerator
 		private static string RectArrItem_Code_Normal = "\t{{{0},{1},{2},{3},{4}}},";
 		private static string RectArrItem_Code_Round = "\t{{{0},{1},{2},{3},{4},{5}}},";		
 		private static string RectArr_Code_Normal = "const u16 dimensions_rect1[{0}][5] = {{\r{1}}};";//填充矩形
-		private static string RectArr_Code_Round = "const u16 dimensions_rect2[{0}][5] = {{\r{1}}};";//填充圆角矩形
+		private static string RectArr_Code_Round = "const u16 dimensions_rect2[{0}][6] = {{\r{1}}};";//填充圆角矩形
 		//private static string RectLineArr_Code_Normal = "const u16 dimensions_rect3[{0}][5] = {{\r{1}}};";//矩形框
 		//private static string RectLineArr_Code_Round = "const u16 dimensions_rect4[{0}][5] = {{\r{1}}};";//圆角矩形框
 		#endregion
@@ -309,9 +309,9 @@ namespace GuiGenerator
 				output = initStr + controlStr + drawStr;
 				return output;
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				string output = e.Message;
+				string output = ex.Message;
 				return output;
 			}
 		}
@@ -326,7 +326,8 @@ namespace GuiGenerator
 			for (int i = 0; i < IconList.Count; i++)
 			{
 				var icon = IconList[i];
-				iconStr += string.Format(IconInitCode, i, icon.CanvasLeft, icon.CanvasTop, icon.Width, icon.Height, icon.Name) + Environment.NewLine;
+				iconStr += string.Format(IconInitCode, i, icon.CanvasLeft, 
+					icon.CanvasTop, icon.Width, icon.Height, icon.Name) + Environment.NewLine;
 			}
 			return iconStr;
 		}
@@ -365,10 +366,11 @@ namespace GuiGenerator
 		private static string GetLabelSettings(List<WindowCanvasLabel> LblList)
 		{
 			string lblStr = "//============Label============" + Environment.NewLine;
-			for (int i = 0; i < LblList.Count; i++)
+			List<WindowCanvasLabel> list =  LblList.OrderBy(item => item.Uid).ToList();
+			for (int i = 0; i < list.Count; i++)
 			{
-				var lbl = LblList[i];
-				string lblName = window.Canvas.Name + "_labs+" + i;
+				var lbl = list[i];
+				string lblName = window.Canvas.Name + "_labs+" + lbl.Uid;
 				if (lbl.Background == null)
 				{
 					lbl.Background = window.Canvas.Background;//背景色 默认Canvas(Screen)底色
@@ -490,7 +492,8 @@ namespace GuiGenerator
 					itemsStr = string.Join(",", itemsArr.ToArray());
 				}
 				lbxStr += string.Format(itemsInit, itemsName + "[]", itemsStr) + Environment.NewLine;
-				lbxStr += string.Format(ListboxSetItemsCode, lbxName, itemsName, items.Length) + Environment.NewLine;
+				lbxStr += string.Format(ListboxSetItemsCode, lbxName
+					, itemsName, items.Length) + Environment.NewLine;
 			}
 			return lbxStr;
 		}
@@ -543,13 +546,18 @@ namespace GuiGenerator
 				{
 					var rect = RecList_Round[i];
 					string color = GetRGB565Code(rect.Fill);
-					recItemStr_Round += string.Format(RectArrItem_Code_Round, rect.CanvasLeft, rect.CanvasTop, rect.Width, rect.Height, Convert.ToInt32(rect.RadiusX), color) + Environment.NewLine;
+					recItemStr_Round += string.Format(RectArrItem_Code_Round
+						, rect.CanvasLeft
+						, rect.CanvasTop, rect.Width
+						, rect.Height
+						, Convert.ToInt32(rect.RadiusX), color) + Environment.NewLine;
 				}
 				recStr_Round = string.Format(RectArr_Code_Round,
 					RecList_Round.Count,
 					recItemStr_Round) + Environment.NewLine;
 				recStr_Round += "for(i=0;i<sizeof(dimensions_rect2)/sizeof(dimensions_rect2[0]);i++)" + Environment.NewLine;
-				recStr_Round += "\t" + "GUI_FillRoundRect(dimensions_rect2[i][0],dimensions_rect2[i][1],dimensions_rect2[i][2],dimensions_rect2[i][3],dimensions_rect2[i][4],dimensions_rect2[i][5]);" + Environment.NewLine;
+				recStr_Round += "\t" + "GUI_FillRoundRect(dimensions_rect2[i][0],dimensions_rect2[i][1],"
+					+"dimensions_rect2[i][2],dimensions_rect2[i][3],dimensions_rect2[i][4],dimensions_rect2[i][5]);" + Environment.NewLine;
 			}
 			if (RecList_Normal != null && RecList_Normal?.Count > 0)
 			{
@@ -557,13 +565,16 @@ namespace GuiGenerator
 				{
 					var rect = RecList_Normal[i];
 					string color = GetRGB565Code(rect.Fill);
-					recItemStr_Normal += string.Format(RectArrItem_Code_Normal, rect.CanvasLeft, rect.CanvasTop, rect.Width, rect.Height, color) + Environment.NewLine;
+					recItemStr_Normal += string.Format(RectArrItem_Code_Normal, rect.CanvasLeft
+						, rect.CanvasTop, rect.Width
+						, rect.Height, color) + Environment.NewLine;
 				}
 				recStr_Normal = string.Format(RectArr_Code_Normal,
 					RecList_Normal.Count,
 					recItemStr_Normal) + Environment.NewLine;
 				recStr_Normal += "for(i=0;i<sizeof(dimensions_rect1)/sizeof(dimensions_rect1[0]);i++)" + Environment.NewLine;
-				recStr_Normal += "\t" + "GUI_FillRect(dimensions_rect1[i][0],dimensions_rect1[i][1],dimensions_rect1[i][2],dimensions_rect1[i][3],dimensions_rect1[i][4]);" + Environment.NewLine;
+				recStr_Normal += "\t" + "GUI_FillRect(dimensions_rect1[i][0],dimensions_rect1[i][1],"
+					+"dimensions_rect1[i][2],dimensions_rect1[i][3],dimensions_rect1[i][4]);" + Environment.NewLine;
 			}
 			recStr += recStr_Normal + recStr_Round;
 			return recStr;
@@ -583,10 +594,13 @@ namespace GuiGenerator
 				string color = GetRGB565Code(rect.Fill);
 				if (rect.RadiusX == rect.RadiusY && rect.RadiusX != 0)
 				{
-					recStr += string.Format(Draw_Rect_Code_Round, rect.CanvasLeft, rect.CanvasTop, rect.Width, rect.Height, Convert.ToInt32(rect.RadiusX), color) + Environment.NewLine;
+					recStr += string.Format(Draw_Rect_Code_Round, rect.CanvasLeft
+						, rect.CanvasTop, rect.Width, rect.Height
+						, Convert.ToInt32(rect.RadiusX), color) + Environment.NewLine;
 				}
 				else
-					recStr += string.Format(Draw_Rect_Code_Normal, rect.CanvasLeft, rect.CanvasTop, rect.Width, rect.Height, color) + Environment.NewLine;
+					recStr += string.Format(Draw_Rect_Code_Normal, rect.CanvasLeft
+						, rect.CanvasTop, rect.Width, rect.Height, color) + Environment.NewLine;
 			}
 			return recStr;
 		}

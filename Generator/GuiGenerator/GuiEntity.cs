@@ -2550,6 +2550,8 @@ namespace GuiGenerator.GuiEntity
 
 		private string renderTransformOriginField;
 
+		private string uid;
+
 		/// <remarks/>
 		[System.Xml.Serialization.XmlAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "http://schemas.microsoft.com/winfx/2006/xaml")]
 		public string Name
@@ -2745,6 +2747,21 @@ namespace GuiGenerator.GuiEntity
 				renderTransformOriginField = value;
 			}
 		}
+
+		/// <remarks/>
+		[System.Xml.Serialization.XmlAttribute()]
+		public string Uid
+		{
+			get
+			{
+				return uid;
+			}
+			set
+			{
+				uid = value;
+			}
+		}
+
 	}
 
 	/// <remarks/>
